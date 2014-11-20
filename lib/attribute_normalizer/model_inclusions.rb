@@ -9,6 +9,7 @@ module AttributeNormalizer
     def normalize_attributes(*attributes, &block)
       options = attributes.last.is_a?(::Hash) ? attributes.pop : {}
 
+      if_clause        = options[:if]
       normalizers      = [ options[:with] ].flatten.compact
       normalizers      = [ options[:before] ].flatten.compact if block_given? && normalizers.empty?
       post_normalizers = [ options[:after] ].flatten.compact if block_given?
@@ -20,6 +21,7 @@ module AttributeNormalizer
       attributes.each do |attribute|
         define_method "normalize_#{attribute}" do |value|
           normalized = value
+          return normalized if if_clause.present? && !if_clause.call(self)
 
           normalizers.each do |normalizer_name|
             unless normalizer_name.kind_of?(Symbol)
